@@ -2,7 +2,7 @@ import app from "ags/gtk4/app"
 import Adw from "gi://Adw"
 import Gio from "gi://Gio"
 import GLib from "gi://GLib"
-import css from "./style/main.scss"
+import css from "./style/main.css"
 import { getConfig, loadUserConfig } from "./config.loader"
 import Bar from "./widget/Bar"
 
@@ -53,9 +53,8 @@ app.start({
     applyTheme()
     const _monitor = watchTheme()
 
-    const display = app.get_display()
-    const monitors = display.get_monitors()
-    for (let i = 0; i < monitors.get_n_items(); i++) {
+    const monitors = app.get_monitors()
+    for (let i = 0; i < monitors.length; i++) {
       Bar(i)
     }
   },

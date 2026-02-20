@@ -1,39 +1,46 @@
-import { createBinding } from "ags"
+import { createBinding, createComputed, For } from "ags"
 import Hyprland from "gi://AstalHyprland"
-import config from "../config.defaults"
+import { getConfig } from "../config.loader"
+
+type WorkspaceEntry = { id: number }
 
 export default function Workspaces() {
+  const config = getConfig()
   const hypr = Hyprland.get_default()
   const workspaces = createBinding(hypr, "workspaces")
-  const focused = createBinding(hypr, "focused-workspace")
+  const focusedWorkspace = createBinding(hypr, "focusedWorkspace")
+
+  // Derive a sorted list of workspace IDs (persistent + active)
+  const wsEntries = workspaces.as((wss) => {
+    const ids = new Set([...config.persistentWorkspaces, ...wss.map((w) => w.id)])
+    return [...ids].sort((a, b) => a - b).map((id) => ({ id }))
+  })
 
   return (
     <box class="workspaces" spacing={2}>
-      {workspaces((wss) => {
-        const ids = new Set([...config.persistentWorkspaces, ...wss.map((w) => w.id)])
-        return [...ids]
-          .sort((a, b) => a - b)
-          .map((id) => {
-            const ws = wss.find((w) => w.id === id)
-            const isActive = focused((f) => f?.id === id)
-            const label = id <= 9 ? String(id) : ""
+      <For each={wsEntries} id={(e) => e.id}>
+        {(entry) => {
+          const id = entry.id
+          const isActive = focusedWorkspace.as((f) => f?.id === id)
+          const label = id <= 9 ? String(id) : ""
 
-            return (
-              <button
-                class={isActive((a) => (a ? "active" : ""))}
-                onClicked={() => {
-                  if (ws) {
-                    ws.focus()
-                  } else {
-                    Hyprland.get_default().dispatch("workspace", String(id))
-                  }
-                }}
-              >
-                <label label={label} class="bar-icon" />
-              </button>
-            )
-          })
-      })}
+          return (
+            <button
+              class={isActive.as((a) => a ? "active" : "")}
+              onClicked={() => {
+                const ws = hypr.get_workspaces().find((w) => w.id === id)
+                if (ws) {
+                  ws.focus()
+                } else {
+                  hypr.dispatch("workspace", String(id))
+                }
+              }}
+            >
+              <label label={label} class="bar-icon" />
+            </button>
+          )
+        }}
+      </For>
     </box>
   )
 }

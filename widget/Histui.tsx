@@ -1,5 +1,5 @@
 import { createPoll } from "ags/time"
-import { createComputed } from "ags"
+import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
 
 type HistuiStatus = {
@@ -34,27 +34,35 @@ function parseStatus(raw: string): HistuiStatus {
 
 export default function Histui() {
   const raw = createPoll("", 5000, "histui status --detailed")
-  const status = createComputed(() => parseStatus(raw()))
+  const status = raw.as(parseStatus)
+
+  function setupGesture(self: Gtk.Button) {
+    const gesture = new Gtk.GestureClick()
+    gesture.button = 0
+    gesture.connect("released", () => {
+      const btn = gesture.get_current_button()
+      if (btn === 3) {
+        GLib.spawn_command_line_async(
+          "hyprctl dispatch exec '[float;size 900 600;center] kitty --class histui-float -e histui tui'"
+        )
+      }
+      if (btn === 2) {
+        GLib.spawn_command_line_async(
+          "sh -c 'histui get --format dmenu --since 24h | walker --dmenu -p Notifications'"
+        )
+      }
+    })
+    self.add_controller(gesture)
+  }
 
   return (
     <button
       class="bar-icon"
-      tooltipText={status((s) => s.tooltip)}
+      tooltipText={status.as((s) => s.tooltip)}
       onClicked={() => GLib.spawn_command_line_async("histui dnd toggle")}
-      onButtonReleased={(_, event) => {
-        if (event.get_button() === 3) {
-          GLib.spawn_command_line_async(
-            "hyprctl dispatch exec '[float;size 900 600;center] kitty --class histui-float -e histui tui'"
-          )
-        }
-        if (event.get_button() === 2) {
-          GLib.spawn_command_line_async(
-            "sh -c 'histui get --format dmenu --since 24h | walker --dmenu -p Notifications'"
-          )
-        }
-      }}
+      $={setupGesture}
     >
-      <label label={status((s) => s.icon)} />
+      <label label={status.as((s) => s.icon)} />
     </button>
   )
 }

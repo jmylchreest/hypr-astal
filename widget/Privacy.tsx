@@ -1,4 +1,4 @@
-import { createBinding } from "ags"
+import { createBinding, createComputed } from "ags"
 import Hyprland from "gi://AstalHyprland"
 
 const ICONS = {
@@ -13,28 +13,34 @@ export default function Privacy() {
   const hypr = Hyprland.get_default()
   const clients = createBinding(hypr, "clients")
 
-  const screenshareActive = clients((cls) => 
-    cls.some((c) => SCREENSHARE_CLASSES.some((p) => 
+  const screenshareActive = clients.as((cls) =>
+    cls.some((c) => SCREENSHARE_CLASSES.some((p) =>
       (c.class ?? "").toLowerCase().includes(p) || (c.initialClass ?? "").toLowerCase().includes(p)
     ))
   )
 
-  const audioinActive = clients((cls) =>
+  const audioinActive = clients.as((cls) =>
     cls.some((c) => AUDIOIN_CLASSES.some((p) =>
       (c.class ?? "").toLowerCase().includes(p) || (c.initialClass ?? "").toLowerCase().includes(p)
     ))
   )
 
-  const visible = createBinding(() => screenshareActive() || audioinActive())
+  const visible = createComputed(() => screenshareActive() || audioinActive())
 
   return (
     <box visible={visible}>
-      {screenshareActive((s) => s && (
-        <label class="privacy-indicator" label={ICONS.screenshare} tooltipText="Screen sharing" />
-      ))}
-      {audioinActive((a) => a && (
-        <label class="privacy-indicator" label={ICONS.audioin} tooltipText="Microphone in use" />
-      ))}
+      <label
+        class="privacy-indicator"
+        label={ICONS.screenshare}
+        tooltipText="Screen sharing"
+        visible={screenshareActive}
+      />
+      <label
+        class="privacy-indicator"
+        label={ICONS.audioin}
+        tooltipText="Microphone in use"
+        visible={audioinActive}
+      />
     </box>
   )
 }

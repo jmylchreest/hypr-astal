@@ -1,21 +1,30 @@
-import { createBinding, For } from "ags"
+import { createBinding } from "ags"
 import SystemTray from "gi://AstalTray"
 import { Gtk } from "ags/gtk4"
 
 function TrayItem({ item }: { item: SystemTray.TrayItem }) {
-  const icon = createBinding(item, "gicon")
-  const tooltip = createBinding(item, "tooltip-markup")
-  const menu = item.create_menu()
+  const gicon = createBinding(item, "gicon")
+  const tooltip = createBinding(item, "tooltipMarkup")
+  const menuModel = createBinding(item, "menuModel")
+  const actionGroup = createBinding(item, "actionGroup")
 
   return (
     <menubutton
       class="tray-item"
       tooltipMarkup={tooltip}
-      direction={Gtk.ArrowType.DOWN}
-      usePopover={false}
-      menu={menu ?? undefined}
+      $={(self: Gtk.MenuButton) => {
+        // Insert the action group so menu actions work
+        const dispose = actionGroup.subscribe(() => {
+          self.insert_action_group("dbusmenu", actionGroup.peek())
+        })
+        self.insert_action_group("dbusmenu", actionGroup.peek())
+
+        // Notify the tray app before showing the menu
+        self.connect("activate", () => item.about_to_show())
+      }}
     >
-      <image gicon={icon} iconSize={Gtk.IconSize.LARGE} />
+      <image gicon={gicon} iconSize={Gtk.IconSize.NORMAL} />
+      {menuModel}
     </menubutton>
   )
 }
@@ -26,9 +35,7 @@ export default function Tray() {
 
   return (
     <box class="tray" spacing={8}>
-      <For each={items}>
-        {(item) => <TrayItem item={item} />}
-      </For>
+      {items((list) => list.map((item) => <TrayItem item={item} />))}
     </box>
   )
 }

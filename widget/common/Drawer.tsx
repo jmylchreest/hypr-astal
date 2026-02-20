@@ -21,14 +21,18 @@ export default function Drawer({
       ? Gtk.RevealerTransitionType.SLIDE_RIGHT
       : Gtk.RevealerTransitionType.SLIDE_LEFT
 
+  // GTK4 requires EventControllerMotion for hover detection
+  const hover = new Gtk.EventControllerMotion()
+  hover.connect("enter", () => setRevealed(true))
+  hover.connect("leave", () => setRevealed(false))
+
   return (
     <box
       class="pill-group"
-      onHover={() => setRevealed(true)}
-      onHoverLost={() => setRevealed(false)}
+      $={(self: Gtk.Box) => self.add_controller(hover)}
     >
       <revealer
-        revealChild={revealed()}
+        revealChild={revealed}
         transitionType={transitionType}
         transitionDuration={transitionDuration}
       >

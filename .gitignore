@@ -9,6 +9,10 @@ themes/*.css
 !themes/default.css
 !themes/tinct.css
 
+# Generated type definitions (ags types)
+@girs/
+env.d.ts
+
 # Build output
 dist/
 

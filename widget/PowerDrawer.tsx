@@ -1,6 +1,5 @@
 import { createBinding } from "ags"
 import PowerProfiles from "gi://AstalPowerProfiles"
-import GLib from "gi://GLib"
 import Drawer from "./common/Drawer"
 import IconButton from "./common/IconButton"
 import layout from "../layouts"
@@ -19,8 +18,9 @@ const ICONS = {
 
 export default function PowerDrawer() {
   const pp = PowerProfiles.get_default()
-  const profile = createBinding(pp, "active-profile")
-  const profiles = createBinding(pp, "profiles")
+  const profile = createBinding(pp, "activeProfile")
+  // profiles is a static list, not a reactive property
+  const profileNames = pp.get_profiles().map((p) => p.profile)
 
   const profileIcon = profile((p) => ICONS.profiles[p as keyof typeof ICONS.profiles] ?? ICONS.profiles.balanced)
 
@@ -31,11 +31,12 @@ export default function PowerDrawer() {
         <box>
           <IconButton
             icon={profileIcon}
-            tooltip={profile((p) => `Profile: ${p}`)}
+            tooltip={profile.as((p) => `Profile: ${p}`)}
             onClick={() => {
-              const idx = profiles().findIndex((p) => p === profile())
-              const next = profiles()[(idx + 1) % profiles().length]
-              if (next) pp.active_profile = next
+              const current = pp.activeProfile
+              const idx = profileNames.indexOf(current)
+              const next = profileNames[(idx + 1) % profileNames.length]
+              if (next) pp.activeProfile = next
             }}
           />
         </box>
