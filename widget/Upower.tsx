@@ -1,47 +1,53 @@
-import { createPoll } from "ags/time"
-import { createComputed } from "ags"
+import { createBinding } from "ags"
+import Battery from "gi://AstalBattery"
 
 const ICONS = {
-  battery:     ["", "", "", "", ""],
-  charging:    "󰂄",
-  unavailable: "",
+  battery:   ["", "", "", "", ""],
+  charging:  "󰂄",
 }
 
 export default function Upower() {
-  const raw = createPoll("", 5000, 
-    "sh -c 'upower -e | grep -i battery | head -1 | xargs -I{} upower -i {} 2>/dev/null || echo \"\"'"
+  const bat = Battery.get_default()
+  const devices = createBinding(bat, "devices")
+  
+  // Find the main battery (power-supply = true)
+  const battery = devices((ds) => 
+    ds.find((d) => d.deviceType === Battery.Type.BATTERY && d.powerSupply) ?? ds[0]
   )
+  
+  const percent = createBinding(() => battery()?.percentage ?? 0)
+  const state = createBinding(() => battery()?.state ?? Battery.State.UNKNOWN)
+  const timeToFull = createBinding(() => battery()?.timeToFull)
+  const timeToEmpty = createBinding(() => battery()?.timeToEmpty)
 
-  const info = createComputed(() => {
-    const text = raw()
-    if (!text) return { icon: ICONS.unavailable, tooltip: "", visible: false }
-
-    const percentMatch = text.match(/percentage:\s*(\d+)%/)
-    const stateMatch = text.match(/state:\s*(\w+)/)
-    const timeMatch = text.match(/time to (?:full|empty):\s*(.+)/)
-
-    const percent = percentMatch ? parseInt(percentMatch[1]) : 0
-    const state = stateMatch ? stateMatch[1] : "unknown"
-    const time = timeMatch ? timeMatch[1] : ""
-
-    const iconIndex = Math.min(4, Math.floor(percent / 20))
-    const icon = state === "charging" 
-      ? ICONS.charging 
-      : ICONS.battery[iconIndex]
-
-    return {
-      icon,
-      tooltip: `${percent}%${time ? ` // ${time}` : ""} (${state})`,
-      visible: percent > 0 || state !== "unknown",
-    }
+  const icon = createBinding(() => {
+    const p = percent()
+    const s = state()
+    if (s === Battery.State.CHARGING || s === Battery.State.FULLY_CHARGED) return ICONS.charging
+    const idx = Math.min(4, Math.floor(p / 20))
+    return ICONS.battery[idx]
   })
+
+  const tooltip = createBinding(() => {
+    const p = percent()
+    const s = state()
+    const time = s === Battery.State.CHARGING ? timeToFull() : timeToEmpty()
+    const stateStr = s === Battery.State.CHARGING ? "charging" 
+                   : s === Battery.State.DISCHARGING ? "discharging"
+                   : s === Battery.State.FULLY_CHARGED ? "full"
+                   : "unknown"
+    const timeStr = time ? ` // ${Math.floor(time / 3600)}h ${Math.floor((time % 3600) / 60)}m` : ""
+    return `${p}%${timeStr} (${stateStr})`
+  })
+
+  const visible = createBinding(() => battery() !== undefined)
 
   return (
     <label
       class="bar-icon"
-      label={info((i) => i.icon)}
-      tooltipText={info((i) => i.tooltip)}
-      visible={info((i) => i.visible)}
+      label={icon}
+      tooltipText={tooltip}
+      visible={visible}
     />
   )
 }

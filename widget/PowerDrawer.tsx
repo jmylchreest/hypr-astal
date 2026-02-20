@@ -1,4 +1,4 @@
-import { createBinding, createPoll } from "ags"
+import { createBinding } from "ags"
 import PowerProfiles from "gi://AstalPowerProfiles"
 import GLib from "gi://GLib"
 import Drawer from "./common/Drawer"
@@ -22,8 +22,6 @@ export default function PowerDrawer() {
   const profiles = createBinding(pp, "profiles")
 
   const profileIcon = profile((p) => ICONS.profiles[p as keyof typeof ICONS.profiles] ?? ICONS.profiles.balanced)
-
-  const confirmScript = "~/.config/hypr/scripts/walker-confirm.sh"
 
   return (
     <Drawer
@@ -50,17 +48,17 @@ export default function PowerDrawer() {
       <IconButton
         icon={ICONS.reboot}
         tooltip="Reboot system"
-        command={`${confirmScript} 'Reboot System?' 'Yes' -- systemctl reboot`}
+        command="hyprshutdown --post-cmd 'systemctl reboot'"
       />
       <IconButton
         icon={ICONS.power}
         tooltip="Power off system"
-        command={`${confirmScript} 'Power off System?' 'Yes' -- systemctl poweroff`}
+        command="hyprshutdown --post-cmd 'systemctl poweroff'"
       />
       <IconButton
         icon={ICONS.quit}
         tooltip="Quit Hyprland"
-        command={`${confirmScript} 'Quit Hyprland?' 'Yes' -- hyprctl dispatch exit`}
+        command="hyprshutdown"
       />
     </Drawer>
   )

@@ -1,7 +1,6 @@
 import { createBinding } from "ags"
 import Network from "gi://AstalNetwork"
-import GLib from "gi://GLib"
-import IconButton from "./common/IconButton"
+import { Gtk } from "ags/gtk4"
 
 const WIFI_ICONS = ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
 const ETHERNET_ICON = "󰈀"
@@ -22,7 +21,7 @@ export default function NetworkWidget() {
   })
 
   const wifiTooltip = createBinding(wifi, "ssid").((ssid) =>
-    ssid ? `${ssid} // ${wifi.strength}%` : "WiFi disconnected"
+    ssid ? `${ssid} (${wifi.strength}%)` : "WiFi disconnected"
   )
 
   const wiredIcon = createBinding(wired, "addresses").((addrs) =>
@@ -33,24 +32,79 @@ export default function NetworkWidget() {
     addrs.length > 0 ? "Ethernet connected" : "Ethernet disconnected"
   )
 
-  function openNmtui() {
-    GLib.spawn_command_line_async(
-      "hyprctl dispatch exec '[float;size 900 600;center] kitty --class nmtui-float -e nmtui'"
+  const accessPoints = createBinding(wifi, "access-points")
+
+  function AccessPointItem({ ap }: { ap: Network.AccessPoint }) {
+    const ssid = createBinding(ap, "ssid")
+    const strength = createBinding(ap, "strength")
+    const flags = createBinding(ap, "flags")
+    const active = createBinding(wifi, "ssid").((s) => s === ap.ssid)
+
+    const icon = strength((s) => {
+      if (s >= 80) return "network-wireless-signal-excellent-symbolic"
+      if (s >= 60) return "network-wireless-signal-good-symbolic"
+      if (s >= 40) return "network-wireless-signal-ok-symbolic"
+      if (s >= 20) return "network-wireless-signal-weak-symbolic"
+      return "network-wireless-signal-none-symbolic"
+    })
+
+    return (
+      <button
+        onClicked={() => {
+          wifi.scan()
+        }}
+      >
+        <box spacing={8}>
+          <image iconName={icon} iconSize={Gtk.IconSize.NORMAL} />
+          <label label={ssid((s) => s || "Hidden")} hexpand halign={Gtk.Align.START} />
+          {active((a) => a && (
+            <image iconName="emblem-ok-symbolic" iconSize={Gtk.IconSize.NORMAL} />
+          ))}
+        </box>
+      </button>
     )
   }
 
   return (
     <box spacing={0}>
-      <IconButton
-        icon={wiredIcon}
-        tooltip={wiredTooltip}
-        onMiddleClick={openNmtui}
-      />
-      <IconButton
-        icon={wifiIcon}
-        tooltip={wifiTooltip}
-        onMiddleClick={openNmtui}
-      />
+      {wiredIcon((i) => i && (
+        <label class="bar-icon" label={i} tooltipText={wiredTooltip()} />
+      ))}
+      <menubutton tooltipText={wifiTooltip}>
+        <label label={wifiIcon} />
+        <popover hasArrow={false} position={Gtk.PositionType.BOTTOM}>
+          <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280} margin={8}>
+            <box spacing={8} margin={4}>
+              <label label="Wi-Fi" hexpand halign={Gtk.Align.START} />
+              <button
+                onClicked={() => {
+                  if (wifi.enabled) {
+                    wifi.disable()
+                  } else {
+                    wifi.enable()
+                  }
+                }}
+              >
+                <image
+                  iconName={createBinding(wifi, "enabled")((e) => 
+                    e ? "system-shutdown-symbolic" : "system-run-symbolic"
+                  )}
+                  iconSize={Gtk.IconSize.NORMAL}
+                />
+              </button>
+            </box>
+            <separator />
+            {accessPoints((aps) => aps.length > 0 && (
+              <box orientation={Gtk.Orientation.VERTICAL} spacing={2}>
+                {aps.slice(0, 8).map((ap) => <AccessPointItem ap={ap} />)}
+              </box>
+            ))}
+            {accessPoints((aps) => aps.length === 0 && (
+              <label label="Scanning..." css="opacity: 0.6; padding: 8px;" />
+            )}
+          </box>
+        </popover>
+      </menubutton>
     </box>
   )
 }

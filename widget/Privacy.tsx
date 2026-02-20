@@ -1,53 +1,39 @@
-import { createPoll } from "ags/time"
-import { createComputed } from "ags"
-import GLib from "gi://GLib"
+import { createBinding } from "ags"
+import Hyprland from "gi://AstalHyprland"
 
 const ICONS = {
   screenshare: "󰕧",
   audioin:     "󰍬",
 }
 
-type PrivacyInfo = {
-  screenshare: boolean
-  audioin: boolean
-  tooltip: string
-}
-
-function parsePrivacy(raw: string): PrivacyInfo {
-  try {
-    const parsed = JSON.parse(raw)
-    return {
-      screenshare: parsed.screenshare ?? false,
-      audioin: parsed.audioin ?? false,
-      tooltip: parsed.tooltip ?? "",
-    }
-  } catch {
-    return { screenshare: false, audioin: false, tooltip: "" }
-  }
-}
+const SCREENSHARE_CLASSES = ["obs", "screensho", "record", "wf-recorder", "slurp"]
+const AUDIOIN_CLASSES = ["pavucontrol", "easyeffects", "helvum", "pwvucontrol", "mic"]
 
 export default function Privacy() {
-  const raw = createPoll('{"screenshare":false,"audioin":false}', 2000,
-    "sh -c 'hyprctl clients -j 2>/dev/null | jq -c \"{screenshare: [.[] | select(.class | test(\\\"(obs|screensho|record)\\\"; \\\"i\\\")) ] | length > 0, audioin: [.[] | select(.class | test(\\\"(pavucontrol|audio|mic)\\\"; \\\"i\\\")) ] | length > 0}\" 2>/dev/null || echo \"{\\\"screenshare\\\":false,\\\"audioin\\\":false}\"'"
+  const hypr = Hyprland.get_default()
+  const clients = createBinding(hypr, "clients")
+
+  const screenshareActive = clients((cls) => 
+    cls.some((c) => SCREENSHARE_CLASSES.some((p) => 
+      (c.class ?? "").toLowerCase().includes(p) || (c.initialClass ?? "").toLowerCase().includes(p)
+    ))
   )
 
-  const info = createComputed(() => parsePrivacy(raw()))
+  const audioinActive = clients((cls) =>
+    cls.some((c) => AUDIOIN_CLASSES.some((p) =>
+      (c.class ?? "").toLowerCase().includes(p) || (c.initialClass ?? "").toLowerCase().includes(p)
+    ))
+  )
+
+  const visible = createBinding(() => screenshareActive() || audioinActive())
 
   return (
-    <box visible={info((i) => i.screenshare || i.audioin)}>
-      {info((i) => i.screenshare && (
-        <label
-          class="privacy-indicator"
-          label={ICONS.screenshare}
-          tooltipText="Screen sharing"
-        />
+    <box visible={visible}>
+      {screenshareActive((s) => s && (
+        <label class="privacy-indicator" label={ICONS.screenshare} tooltipText="Screen sharing" />
       ))}
-      {info((i) => i.audioin && (
-        <label
-          class="privacy-indicator"
-          label={ICONS.audioin}
-          tooltipText="Microphone in use"
-        />
+      {audioinActive((a) => a && (
+        <label class="privacy-indicator" label={ICONS.audioin} tooltipText="Microphone in use" />
       ))}
     </box>
   )

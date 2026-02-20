@@ -1,45 +1,88 @@
 import { createBinding } from "ags"
 import Bluetooth from "gi://AstalBluetooth"
-import GLib from "gi://GLib"
-import IconButton from "./common/IconButton"
+import { Gtk } from "ags/gtk4"
 
 const ICON_CONNECTED = ""
 const ICON_OFF = "󰂲"
 
 export default function BluetoothWidget() {
   const bt = Bluetooth.get_default()
-
   const isPowered = createBinding(bt, "isPowered")
   const devices = createBinding(bt, "devices")
-  const connectedDevices = devices((ds) => ds.filter((d) => d.connected))
 
   const icon = isPowered((p) => p ? ICON_CONNECTED : ICON_OFF)
 
   const tooltip = createBinding(() => {
     if (!isPowered()) return "Bluetooth off"
-    const connected = connectedDevices()
-    if (connected.length === 0) return "Bluetooth on\nNo devices connected"
-    return `Bluetooth on\n${connected.length} device(s) connected\n${connected.map((d) => d.name).join(", ")}`
+    const connected = devices().filter((d) => d.connected)
+    if (connected.length === 0) return "Bluetooth on"
+    return `Bluetooth: ${connected.length} connected`
   })
 
-  function openBluetui() {
-    GLib.spawn_command_line_async(
-      "hyprctl dispatch exec '[float;size 900 600;center] kitty --class bluetui-float -e bluetui'"
+  function DeviceItem({ device }: { device: Bluetooth.Device }) {
+    const name = createBinding(device, "name")
+    const connected = createBinding(device, "connected")
+    const paired = createBinding(device, "paired")
+    const deviceIcon = createBinding(device, "icon")
+
+    return (
+      <button
+        onClicked={() => {
+          if (device.connected) {
+            device.disconnect_device(() => {})
+          } else {
+            device.connect_device(() => {})
+          }
+        }}
+      >
+        <box spacing={8}>
+          <image iconName={deviceIcon} iconSize={Gtk.IconSize.NORMAL} />
+          <box hexpand orientation={Gtk.Orientation.VERTICAL}>
+            <label label={name((n) => n || "Unknown")} halign={Gtk.Align.START} />
+            <label
+              label={connected((c) => c ? "Connected" : paired((p) => p ? "Paired" : "Available"))}
+              halign={Gtk.Align.START}
+              css="font-size: 11px; opacity: 0.7;"
+            />
+          </box>
+        </box>
+      </button>
     )
   }
 
   return (
-    <IconButton
-      icon={icon}
-      tooltip={tooltip}
-      onMiddleClick={openBluetui}
-      onClick={() => {
-        if (isPowered()) {
-          GLib.spawn_command_line_async("rfkill block bluetooth")
-        } else {
-          GLib.spawn_command_line_async("rfkill unblock bluetooth")
-        }
-      }}
-    />
+    <menubutton tooltipText={tooltip}>
+      <label label={icon} />
+      <popover hasArrow={false} position={Gtk.PositionType.BOTTOM}>
+        <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280} margin={8}>
+          <box spacing={8} margin={4}>
+            <label label="Bluetooth" hexpand halign={Gtk.Align.START} />
+            <button
+              onClicked={() => {
+                if (isPowered()) {
+                  bt.adapter?.power_off()
+                } else {
+                  bt.adapter?.power_on()
+                }
+              }}
+            >
+              <image
+                iconName={isPowered((p) => p ? "system-shutdown-symbolic" : "system-run-symbolic")}
+                iconSize={Gtk.IconSize.NORMAL}
+              />
+            </button>
+          </box>
+          <separator />
+          {devices((ds) => ds.length > 0 && (
+            <box orientation={Gtk.Orientation.VERTICAL} spacing={2}>
+              {ds.map((d) => <DeviceItem device={d} />)}
+            </box>
+          ))}
+          {devices((ds) => ds.length === 0 && (
+            <label label="No devices found" css="opacity: 0.6; padding: 8px;" />
+          ))}
+        </box>
+      </popover>
+    </menubutton>
   )
 }

@@ -1,5 +1,4 @@
-import { createPoll } from "ags/time"
-import { createComputed } from "ags"
+import { createState } from "ags"
 import GLib from "gi://GLib"
 
 const ICONS = {
@@ -7,33 +6,32 @@ const ICONS = {
   deactivated: "",
 }
 
+let inhibitCookie: number | null = null
+
 export default function IdleInhibitor() {
-  const raw = createPoll("deactivated", 2000, 
-    "sh -c 'systemd-inhibit --list 2>/dev/null | grep -q \"hyprland\\|wayland\" && echo activated || echo deactivated'"
-  )
-  
-  const isActivated = createComputed(() => raw() === "activated")
-  const icon = createComputed(() => isActivated() ? ICONS.activated : ICONS.deactivated)
+  const [isActivated, setIsActivated] = createState(false)
 
   function toggle() {
     if (isActivated()) {
-      GLib.spawn_command_line_async("hyprctl dispatch exec 'systemd-inhibit --what=idle --who=hyprland --why=User\\ toggle --mode=block false'")
+      // Kill any running inhibit processes
+      GLib.spawn_command_line_async("pkill -f 'systemd-inhibit.*idle'")
+      setIsActivated(false)
     } else {
-      GLib.spawn_command_line_async("hyprctl dispatch exec 'systemd-inhibit --what=idle --who=hyprland --why=User\\ request --mode=block true'")
+      // Start idle inhibitor in background
+      GLib.spawn_command_line_async(
+        "systemd-inhibit --what=idle --who=hyprbar --why='User requested' --mode=block sleep infinity"
+      )
+      setIsActivated(true)
     }
   }
 
   return (
     <button
       class={`idle-inhibitor bar-icon${isActivated((a) => a ? " activated" : "")}`}
-      tooltipText={isActivated((a) => a ? "Inhibitor active" : "Inhibitor inactive")}
-      onClicked={() => GLib.spawn_command_line_async(
-        isActivated() 
-          ? "pkill -f 'systemd-inhibit.*idle'"
-          : "hyprctl dispatch exec 'systemd-inhibit --what=idle --who=hyprland --why=User request --mode=block sleep infinity'"
-      )}
+      tooltipText={isActivated((a) => a ? "Idle inhibited" : "Idle not inhibited")}
+      onClicked={toggle}
     >
-      <label label={icon} />
+      <label label={isActivated((a) => a ? ICONS.activated : ICONS.deactivated)} />
     </button>
   )
 }
