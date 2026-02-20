@@ -21,16 +21,14 @@ export default function Drawer({
   hover.connect("enter", () => setRevealed(true))
   hover.connect("leave", () => setRevealed(false))
 
+  // visible=false set declaratively so it applies before the first frame,
+  // preventing GTK from trying to snapshot an unallocated box.
   const content = (
-    <box class="drawer-child" valign={Gtk.Align.CENTER}>
+    <box class="drawer-child" valign={Gtk.Align.CENTER} visible={false}>
       {Array.isArray(children) ? children : [children]}
     </box>
   ) as Gtk.Box
 
-  // Revealer handles the slide animation. To prevent "snapshot without
-  // allocation" warnings we hide the content box when the revealer is
-  // fully closed (child-revealed=false = animation finished closing).
-  // This means the box has no size and GTK skips it in snapshot.
   const revealer = (
     <revealer
       revealChild={revealed}
@@ -44,11 +42,18 @@ export default function Drawer({
       valign={Gtk.Align.CENTER}
       vexpand={false}
       $={(self: Gtk.Revealer) => {
+        // Show content when revealer opens; hide again once close animation finishes
         const id = self.connect("notify::child-revealed", () => {
           content.visible = self.childRevealed
         })
-        content.visible = false
-        onCleanup(() => self.disconnect(id))
+        // Also show immediately when reveal starts (before animation completes)
+        const idReveal = self.connect("notify::reveal-child", () => {
+          if (self.revealChild) content.visible = true
+        })
+        onCleanup(() => {
+          self.disconnect(id)
+          self.disconnect(idReveal)
+        })
       }}
     >
       {content}
