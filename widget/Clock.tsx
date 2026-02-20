@@ -1,4 +1,5 @@
 import { createPoll } from "ags/time"
+import { onCleanup } from "ags"
 import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
 import layout from "../layouts"
@@ -18,29 +19,66 @@ export default function Clock() {
   const calYear  = createPoll("", 3_600_000, "cal -y")
 
   return (
-    <menubutton class="clock" tooltipText="Calendar" primary={false}>
-      <label useMarkup label={clock} />
-      <popover hasArrow={false} position={layout.popoverPosition}>
-        <box
-          orientation={Gtk.Orientation.VERTICAL}
-          spacing={8}
-          css="padding: 8px;"
-        >
-          <label
-            class="cal-output"
-            label={calMonth}
-            halign={Gtk.Align.START}
-            selectable
-          />
-          <Gtk.Separator />
-          <label
-            class="cal-output cal-year"
-            label={calYear}
-            halign={Gtk.Align.START}
-            selectable
-          />
-        </box>
-      </popover>
-    </menubutton>
+    <button
+      class="clock"
+      tooltipText="Calendar"
+      $={(self: Gtk.Button) => {
+        // Build popover manually — avoids Gtk.MenuButton's primary/F10 focus system
+        const popover = new Gtk.Popover({
+          hasArrow: false,
+          position: layout.popoverPosition,
+        })
+
+        const calBox = new Gtk.Box({
+          orientation: Gtk.Orientation.VERTICAL,
+          spacing: 8,
+        })
+        calBox.set_margin_top(8)
+        calBox.set_margin_bottom(8)
+        calBox.set_margin_start(8)
+        calBox.set_margin_end(8)
+
+        const calMonthLabel = new Gtk.Label({
+          halign: Gtk.Align.START,
+          selectable: true,
+        })
+        calMonthLabel.add_css_class("cal-output")
+
+        const sep = new Gtk.Separator({ orientation: Gtk.Orientation.HORIZONTAL })
+
+        const calYearLabel = new Gtk.Label({
+          halign: Gtk.Align.START,
+          selectable: true,
+        })
+        calYearLabel.add_css_class("cal-output")
+        calYearLabel.add_css_class("cal-year")
+
+        calBox.append(calMonthLabel)
+        calBox.append(sep)
+        calBox.append(calYearLabel)
+
+        popover.set_child(calBox)
+        popover.set_parent(self)
+
+        // Keep calendar labels up to date
+        const unsubMonth = calMonth.subscribe((v) => { calMonthLabel.label = v })
+        const unsubYear  = calYear.subscribe((v) => { calYearLabel.label = v })
+
+        // Seed initial values
+        calMonthLabel.label = calMonth.peek() ?? ""
+        calYearLabel.label  = calYear.peek() ?? ""
+
+        const id = self.connect("clicked", () => popover.popup())
+
+        onCleanup(() => {
+          unsubMonth()
+          unsubYear()
+          self.disconnect(id)
+          popover.unparent()
+        })
+      }}
+    >
+      <label useMarkup class="clock-label" label={clock} />
+    </button>
   )
 }

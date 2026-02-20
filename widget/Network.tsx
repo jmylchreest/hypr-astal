@@ -4,7 +4,7 @@ import { Gtk } from "ags/gtk4"
 import layout from "../layouts"
 
 const WIFI_ICONS = ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
-const DISCONNECTED_ICON = "󰤮"
+const DISCONNECTED_ICON = "󰤭" // nf-md-wifi_off  U+F092D — has line through it
 
 export default function NetworkWidget() {
   const net = Network.get_default()

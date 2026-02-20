@@ -41,12 +41,12 @@ export default function IconButton({
 
   return (
     <button
-      class={`bar-icon${extraClass ? ` ${extraClass}` : ""}`}
+      class={`icon-btn${extraClass ? ` ${extraClass}` : ""}`}
       tooltipText={tooltip ?? ""}
       onClicked={handlePrimary}
       $={setupGesture}
     >
-      <label label={icon} />
+      <label class="bar-icon" label={icon} />
     </button>
   )
 }

@@ -1,10 +1,8 @@
-import { createState, createComputed } from "ags"
+import { createState } from "ags"
 import GLib from "gi://GLib"
 
-const ICONS = {
-  activated:   "\uF0F4", // nf-fa-coffee   U+F0F4 
-  deactivated: "\uF186", // nf-fa-moon_o   U+F186 
-}
+// Single icon — colour changes via CSS: accent when active, dim when inactive
+const ICON = "\uF0F4" // nf-fa-coffee  U+F0F4
 
 export default function IdleInhibitor() {
   const [isActivated, setIsActivated] = createState(false)
@@ -21,17 +19,16 @@ export default function IdleInhibitor() {
     }
   }
 
-  const cssClass = isActivated.as((a) => `idle-inhibitor bar-icon${a ? " activated" : ""}`)
-  const tooltip = isActivated.as((a) => a ? "Idle inhibited" : "Idle not inhibited")
-  const icon = isActivated.as((a) => a ? ICONS.activated : ICONS.deactivated)
+  const labelClass = isActivated.as((a) => `bar-icon idle-inhibitor${a ? " activated" : ""}`)
+  const tooltip    = isActivated.as((a) => a ? "Idle inhibited — click to allow" : "Allow idle — click to inhibit")
 
   return (
     <button
-      class={cssClass}
+      class="icon-btn"
       tooltipText={tooltip}
       onClicked={toggle}
     >
-      <label label={icon} />
+      <label class={labelClass} label={ICON} />
     </button>
   )
 }

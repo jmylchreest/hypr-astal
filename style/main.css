@@ -46,11 +46,18 @@ menubutton > button {
 }
 
 /* ── Common icon ─────────────────────────────────────────────────────────── */
+/* .bar-icon is on the label inside the button — font-size here directly
+   controls the rendered glyph size. */
 .bar-icon {
   font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", monospace;
   font-size: 16px;
-  min-width: 22px;
+}
+
+/* Wrapper button for icon buttons — tight, no extra space */
+.icon-btn {
   padding: 2px 6px;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* ── Workspaces ──────────────────────────────────────────────────────────── */
@@ -135,7 +142,11 @@ scale.volume-slider slider {
 }
 
 /* ── Idle inhibitor ──────────────────────────────────────────────────────── */
-.idle-inhibitor.activated {
+label.idle-inhibitor {
+  color: alpha(@foreground, 0.4);
+}
+
+label.idle-inhibitor.activated {
   color: @accent;
 }
 

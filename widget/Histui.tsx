@@ -60,12 +60,12 @@ export default function Histui() {
 
   return (
     <button
-      class="bar-icon"
+      class="icon-btn"
       tooltipText={status.as((s) => s.tooltip)}
       onClicked={() => GLib.spawn_command_line_async("histui dnd toggle")}
       $={setupGesture}
     >
-      <label label={status.as((s) => s.icon)} />
+      <label class="bar-icon" label={status.as((s) => s.icon)} />
     </button>
   )
 }
