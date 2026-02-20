@@ -1,12 +1,10 @@
 # Dependencies
 node_modules/
 
-# Generated config (managed by dotter)
-config.ts
-
 # Generated themes (externally managed, e.g. by tinct)
 themes/*.css
 !themes/default.css
+!themes/tinct.css
 
 # Build output
 dist/

@@ -1,0 +1,13 @@
+/* AGS theme using tinct colour palette
+ * Maps tinct's palette to the 9 required @define-color names.
+ */
+
+@define-color background  #0e1528;
+@define-color foreground  #eccfc4;
+@define-color surface     #17213c;
+@define-color outline     #4b5263;
+@define-color accent      #8c75d9;
+@define-color accent-fg   #000000;
+@define-color danger      #d65c7d;
+@define-color warning     #cea73e;
+@define-color success     #56c52d;
