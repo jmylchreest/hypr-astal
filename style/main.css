@@ -47,7 +47,7 @@ menubutton > button {
 
 /* ── Common icon ─────────────────────────────────────────────────────────── */
 .bar-icon {
-  font-family: "Symbols Nerd Font", "FiraCode Nerd Font Mono", monospace;
+  font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", monospace;
   font-size: 16px;
   min-width: 22px;
   padding: 2px 6px;
@@ -104,10 +104,8 @@ menubutton > button {
   margin: 3px 3px;
 }
 
-/* CSS max-width slide animation replaces Gtk.Revealer (avoids snapshot-without-allocation) */
 .drawer-child {
   padding: 0;
-  transition: max-width 200ms ease, opacity 150ms ease;
 }
 
 /* ── Sliders ─────────────────────────────────────────────────────────────── */

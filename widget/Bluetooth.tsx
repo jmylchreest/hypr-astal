@@ -3,15 +3,16 @@ import Bluetooth from "gi://AstalBluetooth"
 import { Gtk } from "ags/gtk4"
 import layout from "../layouts"
 
-const ICON_CONNECTED = "󰂶" // nf-md-bluetooth_connect  U+F00B6
-const ICON_OFF =       "󰂲" // nf-md-bluetooth_off       U+F00B2
+const ICON_ON        = "\uF293" // nf-fa-bluetooth          U+F293 
+const ICON_CONNECTED = "\uF293" // nf-fa-bluetooth (same — tooltip shows connection count)
+const ICON_OFF       = "\uF294" // nf-fa-bluetooth_b (crossed) U+F294 
 
 export default function BluetoothWidget() {
   const bt = Bluetooth.get_default()
   const isPowered = createBinding(bt, "isPowered")
   const devices = createBinding(bt, "devices")
 
-  const icon = isPowered.as((p) => p ? ICON_CONNECTED : ICON_OFF)
+  const icon = isPowered.as((p) => p ? ICON_ON : ICON_OFF)
 
   const tooltip = createComputed(() => {
     if (!isPowered()) return "Bluetooth off"
@@ -60,7 +61,7 @@ export default function BluetoothWidget() {
   const hasDevices = devices.as((ds) => ds.length > 0)
 
   return (
-    <menubutton tooltipText={tooltip}>
+    <menubutton tooltipText={tooltip} primary={false}>
       <label label={icon} class="bar-icon" />
       <popover hasArrow={false} position={layout.popoverPosition}>
         <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280}>

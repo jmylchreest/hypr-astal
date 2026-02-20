@@ -2,8 +2,8 @@ import { createState, createComputed } from "ags"
 import GLib from "gi://GLib"
 
 const ICONS = {
-  activated:   "󰅶", // nf-md-coffee              U+F0176
-  deactivated: "󰹪", // nf-md-coffee_off_outline   U+F0E6A
+  activated:   "\uF0F4", // nf-fa-coffee   U+F0F4 
+  deactivated: "\uF186", // nf-fa-moon_o   U+F186 
 }
 
 export default function IdleInhibitor() {

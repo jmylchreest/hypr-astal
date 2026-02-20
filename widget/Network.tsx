@@ -58,7 +58,7 @@ export default function NetworkWidget() {
   }
 
   return (
-    <menubutton tooltipText={wifiTooltip}>
+    <menubutton tooltipText={wifiTooltip} primary={false}>
       <label label={wifiIcon} class="bar-icon" />
       <popover hasArrow={false} position={layout.popoverPosition}>
         <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280}>

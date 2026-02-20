@@ -18,7 +18,7 @@ export default function Clock() {
   const calYear  = createPoll("", 3_600_000, "cal -y")
 
   return (
-    <menubutton class="clock" tooltipText="Calendar">
+    <menubutton class="clock" tooltipText="Calendar" primary={false}>
       <label useMarkup label={clock} />
       <popover hasArrow={false} position={layout.popoverPosition}>
         <box

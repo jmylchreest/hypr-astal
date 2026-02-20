@@ -1,4 +1,4 @@
-import { createState } from "ags"
+import { createState, onCleanup } from "ags"
 import { Gtk } from "ags/gtk4"
 
 type DrawerProps = {
@@ -12,7 +12,7 @@ export default function Drawer({
   trigger,
   children,
   direction = "left",
-  transitionDuration = 200,
+  transitionDuration = 300,
 }: DrawerProps) {
   const [revealed, setRevealed] = createState(false)
 
@@ -21,50 +21,47 @@ export default function Drawer({
   hover.connect("enter", () => setRevealed(true))
   hover.connect("leave", () => setRevealed(false))
 
-  // Use CSS max-width animation instead of Gtk.Revealer.
-  // Revealer leaves its child unallocated when closed, causing snapshot
-  // warnings whenever the parent box redraws (e.g. on hover events).
-  // With max-width + overflow:hidden the child is always allocated at its
-  // natural size; the clip hides it, and the CSS transition animates it open.
-  const drawerCss = revealed.as((open) =>
-    open
-      ? `max-width: 500px; opacity: 1;`
-      : `max-width: 0px;    opacity: 0;`
-  )
+  const content = (
+    <box class="drawer-child" valign={Gtk.Align.CENTER}>
+      {Array.isArray(children) ? children : [children]}
+    </box>
+  ) as Gtk.Box
 
-  const boxOrder =
-    direction === "left"
-      ? [
-          <box
-            class="drawer-child"
-            valign={Gtk.Align.CENTER}
-            overflow={Gtk.Overflow.HIDDEN}
-            css={drawerCss}
-          >
-            {Array.isArray(children) ? children : [children]}
-          </box>,
-          trigger,
-        ]
-      : [
-          trigger,
-          <box
-            class="drawer-child"
-            valign={Gtk.Align.CENTER}
-            overflow={Gtk.Overflow.HIDDEN}
-            css={drawerCss}
-          >
-            {Array.isArray(children) ? children : [children]}
-          </box>,
-        ]
+  // Revealer handles the slide animation. To prevent "snapshot without
+  // allocation" warnings we hide the content box when the revealer is
+  // fully closed (child-revealed=false = animation finished closing).
+  // This means the box has no size and GTK skips it in snapshot.
+  const revealer = (
+    <revealer
+      revealChild={revealed}
+      transitionType={
+        direction === "left"
+          ? Gtk.RevealerTransitionType.SLIDE_RIGHT
+          : Gtk.RevealerTransitionType.SLIDE_LEFT
+      }
+      transitionDuration={transitionDuration}
+      overflow={Gtk.Overflow.HIDDEN}
+      $={(self: Gtk.Revealer) => {
+        // Sync content visibility with animation completion
+        const id = self.connect("notify::child-revealed", () => {
+          content.visible = self.childRevealed
+        })
+        // Start hidden
+        content.visible = false
+        onCleanup(() => self.disconnect(id))
+      }}
+    >
+      {content}
+    </revealer>
+  )
 
   return (
     <box
       class="pill-group"
       valign={Gtk.Align.CENTER}
-      overflow={Gtk.Overflow.HIDDEN}
       $={(self: Gtk.Box) => self.add_controller(hover)}
     >
-      {boxOrder}
+      {direction === "left" ? [revealer, trigger] : [trigger, revealer]}
     </box>
   )
 }
