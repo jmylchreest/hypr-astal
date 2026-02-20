@@ -104,8 +104,10 @@ menubutton > button {
   margin: 3px 3px;
 }
 
+/* CSS max-width slide animation replaces Gtk.Revealer (avoids snapshot-without-allocation) */
 .drawer-child {
   padding: 0;
+  transition: max-width 200ms ease, opacity 150ms ease;
 }
 
 /* ── Sliders ─────────────────────────────────────────────────────────────── */

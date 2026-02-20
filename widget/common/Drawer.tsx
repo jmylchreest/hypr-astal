@@ -12,41 +12,59 @@ export default function Drawer({
   trigger,
   children,
   direction = "left",
-  transitionDuration = 500,
+  transitionDuration = 200,
 }: DrawerProps) {
   const [revealed, setRevealed] = createState(false)
-
-  const transitionType =
-    direction === "left"
-      ? Gtk.RevealerTransitionType.SLIDE_RIGHT
-      : Gtk.RevealerTransitionType.SLIDE_LEFT
 
   // GTK4 requires EventControllerMotion for hover detection
   const hover = new Gtk.EventControllerMotion()
   hover.connect("enter", () => setRevealed(true))
   hover.connect("leave", () => setRevealed(false))
 
+  // Use CSS max-width animation instead of Gtk.Revealer.
+  // Revealer leaves its child unallocated when closed, causing snapshot
+  // warnings whenever the parent box redraws (e.g. on hover events).
+  // With max-width + overflow:hidden the child is always allocated at its
+  // natural size; the clip hides it, and the CSS transition animates it open.
+  const drawerCss = revealed.as((open) =>
+    open
+      ? `max-width: 500px; opacity: 1;`
+      : `max-width: 0px;    opacity: 0;`
+  )
+
+  const boxOrder =
+    direction === "left"
+      ? [
+          <box
+            class="drawer-child"
+            valign={Gtk.Align.CENTER}
+            overflow={Gtk.Overflow.HIDDEN}
+            css={drawerCss}
+          >
+            {Array.isArray(children) ? children : [children]}
+          </box>,
+          trigger,
+        ]
+      : [
+          trigger,
+          <box
+            class="drawer-child"
+            valign={Gtk.Align.CENTER}
+            overflow={Gtk.Overflow.HIDDEN}
+            css={drawerCss}
+          >
+            {Array.isArray(children) ? children : [children]}
+          </box>,
+        ]
+
   return (
     <box
       class="pill-group"
       valign={Gtk.Align.CENTER}
+      overflow={Gtk.Overflow.HIDDEN}
       $={(self: Gtk.Box) => self.add_controller(hover)}
     >
-      <revealer
-        revealChild={revealed}
-        transitionType={transitionType}
-        transitionDuration={transitionDuration}
-        overflow={Gtk.Overflow.HIDDEN}
-        $={(self: Gtk.Revealer) => {
-          // Ensure the child is allocated before first reveal
-          self.overflow = Gtk.Overflow.HIDDEN
-        }}
-      >
-        <box class="drawer-child" valign={Gtk.Align.CENTER}>
-          {Array.isArray(children) ? children : [children]}
-        </box>
-      </revealer>
-      {trigger}
+      {boxOrder}
     </box>
   )
 }
