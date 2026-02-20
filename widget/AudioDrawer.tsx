@@ -6,16 +6,17 @@ import IconButton from "./common/IconButton"
 import layout from "../layouts"
 
 const SPEAKER_ICONS = {
-  muted:  "󰝟", // nf-md-volume_off        U+F075F
-  low:    "󰕿", // nf-md-volume_low        U+F057F
-  medium: "󰖀", // nf-md-volume_medium     U+F0580
-  high:   "󰕾", // nf-md-volume_high       U+F057E
+  muted:  "󰝟", // nf-md-volume_off    U+F075F
+  low:    "󰕿", // nf-md-volume_low    U+F057F
+  medium: "󰖀", // nf-md-volume_medium U+F0580
+  high:   "󰕾", // nf-md-volume_high   U+F057E
 }
 
-const MIC_ICON =       "󰍬" // nf-md-microphone        U+F036C
-const MIC_MUTED_ICON = "󰍭" // nf-md-microphone_off    U+F036D
+const MIC_ICON =       "󰍬" // nf-md-microphone     U+F036C
+const MIC_MUTED_ICON = "󰍭" // nf-md-microphone_off U+F036D
 
-// A reactive volume slider bound to an AstalWp Endpoint
+// A reactive volume slider bound directly to an endpoint.
+// The endpoint object is stable — we bind its properties directly.
 function VolumeSlider({ endpoint }: { endpoint: Wp.Endpoint }) {
   const volume = createBinding(endpoint, "volume")
 
@@ -29,7 +30,6 @@ function VolumeSlider({ endpoint }: { endpoint: Wp.Endpoint }) {
       step={0.01}
       value={volume}
       $={(self: Gtk.Scale) => {
-        // Push slider changes back to wireplumber
         const id = self.connect("value-changed", () => {
           endpoint.volume = self.get_value()
         })
@@ -39,83 +39,74 @@ function VolumeSlider({ endpoint }: { endpoint: Wp.Endpoint }) {
   )
 }
 
-export default function AudioDrawer() {
-  const wp = Wp.get_default()!
-  const audio = wp.audio
+// Reactive speaker icon derived from volume + mute bindings on the endpoint.
+// Bindings are created once at component mount time — NOT inside computed.
+function SpeakerIcon({ endpoint }: { endpoint: Wp.Endpoint }) {
+  const muted  = createBinding(endpoint, "mute")
+  const volume = createBinding(endpoint, "volume")
 
-  // Bind to the default endpoint objects themselves
-  const speakerEndpoint = createBinding(audio, "defaultSpeaker")
-  const micEndpoint     = createBinding(audio, "defaultMicrophone")
-
-  // Reactive icon/tooltip that re-evaluates when the endpoint or its
-  // mute/volume properties change.  We re-bind whenever the endpoint changes.
-  const speakerIcon = createComputed(() => {
-    const s = speakerEndpoint()
-    if (!s) return SPEAKER_ICONS.muted
-    const muted  = createBinding(s, "mute")()
-    const vol    = createBinding(s, "volume")()
-    if (muted) return SPEAKER_ICONS.muted
-    if (vol < 0.33) return SPEAKER_ICONS.low
-    if (vol < 0.66) return SPEAKER_ICONS.medium
+  const icon = createComputed(() => {
+    if (muted()) return SPEAKER_ICONS.muted
+    const v = volume()
+    if (v < 0.33) return SPEAKER_ICONS.low
+    if (v < 0.66) return SPEAKER_ICONS.medium
     return SPEAKER_ICONS.high
   })
 
-  const speakerTooltip = createComputed(() => {
-    const s = speakerEndpoint()
-    if (!s) return "No speaker"
-    const muted = createBinding(s, "mute")()
-    const vol   = createBinding(s, "volume")()
-    return `${(vol * 100) | 0}%${muted ? " (muted)" : ""}`
-  })
+  const tooltip = createComputed(() =>
+    `${(volume() * 100) | 0}%${muted() ? " (muted)" : ""}`
+  )
 
-  const micIcon = createComputed(() => {
-    const m = micEndpoint()
-    if (!m) return MIC_MUTED_ICON
-    const muted = createBinding(m, "mute")()
-    return muted ? MIC_MUTED_ICON : MIC_ICON
-  })
+  return (
+    <IconButton
+      icon={icon}
+      tooltip={tooltip}
+      onClick={() => { endpoint.set_mute(!endpoint.mute) }}
+    />
+  )
+}
 
-  const micTooltip = createComputed(() => {
-    const m = micEndpoint()
-    if (!m) return "No mic"
-    const muted = createBinding(m, "mute")()
-    const vol   = createBinding(m, "volume")()
-    return `${(vol * 100) | 0}%${muted ? " (muted)" : ""}`
-  })
+function MicIcon({ endpoint }: { endpoint: Wp.Endpoint }) {
+  const muted  = createBinding(endpoint, "mute")
+  const volume = createBinding(endpoint, "volume")
 
-  // Peek the current endpoint so mute toggle always targets the live object
-  function toggleSpeakerMute() {
-    const s = speakerEndpoint.peek()
-    if (s) s.set_mute(!s.mute)
-  }
-  function toggleMicMute() {
-    const m = micEndpoint.peek()
-    if (m) m.set_mute(!m.mute)
-  }
+  const icon = muted.as((m) => m ? MIC_MUTED_ICON : MIC_ICON)
+  const tooltip = createComputed(() =>
+    `${(volume() * 100) | 0}%${muted() ? " (muted)" : ""}`
+  )
 
-  // The drawer children (revealed on hover): mic icon + mic slider + speaker slider
-  // Speaker icon is the trigger (always visible).
-  const speakerObj = speakerEndpoint.peek()
-  const micObj     = micEndpoint.peek()
+  return (
+    <IconButton
+      icon={icon}
+      tooltip={tooltip}
+      onClick={() => { endpoint.set_mute(!endpoint.mute) }}
+    />
+  )
+}
+
+export default function AudioDrawer() {
+  const wp = Wp.get_default()
+  if (!wp) return <box />
+
+  const audio = wp.audio
+  if (!audio) return <box />
+
+  // These endpoint objects are stable references — safe to use directly.
+  // If defaults change (e.g. user switches output device), we'd need
+  // a more complex approach, but this covers the common case.
+  const speaker = audio.defaultSpeaker
+  const mic     = audio.defaultMicrophone
+
+  if (!speaker) return <box />
 
   return (
     <Drawer
       direction={layout.drawerDirection}
-      trigger={
-        <IconButton
-          icon={speakerIcon}
-          tooltip={speakerTooltip}
-          onClick={toggleSpeakerMute}
-        />
-      }
+      trigger={<SpeakerIcon endpoint={speaker} />}
     >
-      {micObj ? <VolumeSlider endpoint={micObj} /> : <box />}
-      <IconButton
-        icon={micIcon}
-        tooltip={micTooltip}
-        onClick={toggleMicMute}
-      />
-      {speakerObj ? <VolumeSlider endpoint={speakerObj} /> : <box />}
+      {mic ? <VolumeSlider endpoint={mic} /> : null}
+      {mic ? <MicIcon endpoint={mic} /> : null}
+      <VolumeSlider endpoint={speaker} />
     </Drawer>
   )
 }

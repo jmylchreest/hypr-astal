@@ -97,9 +97,12 @@ menubutton > button {
 }
 
 /* ── Clock ───────────────────────────────────────────────────────────────── */
-.clock {
-  font-size: 14px;
+button.clock {
   padding: 0 10px;
+}
+
+.clock-label {
+  font-size: 14px;
 }
 
 /* ── Pill groups (drawers) ───────────────────────────────────────────────── */
