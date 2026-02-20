@@ -10,21 +10,24 @@ type HistuiStatus = {
 }
 
 const ICONS: Record<string, string> = {
-  empty:    "󰂜",
-  dnd:      "󰂛",
-  low:      "󱅫",
-  normal:   "󱅫",
-  critical: "󰂚",
+  empty:             "󰂜", // nf-md-bell_outline       U+F009C
+  dnd:               "󰂛", // nf-md-bell_off            U+F009B
+  low:               "󱅫", // nf-md-bell_badge_outline  U+F116B
+  normal:            "󱅫", // nf-md-bell_badge_outline  U+F116B
+  "has-notifications": "󱅫",
+  critical:          "󰂚", // nf-md-bell_ring           U+F009A
 }
 
 function parseStatus(raw: string): HistuiStatus {
   try {
     const parsed = JSON.parse(raw)
-    const cls = parsed.class ?? "empty"
+    // Use `alt` for clean single-token class (e.g. "normal", "dnd", "empty")
+    // `class` can be compound like "has-notifications normal"
+    const cls = parsed.alt ?? parsed.class ?? "empty"
     return {
       text:    parsed.text ?? "",
       class:   cls,
-      icon:    ICONS[cls] ?? ICONS.empty,
+      icon:    ICONS[cls] ?? ICONS.normal,
       tooltip: parsed.tooltip ?? "",
     }
   } catch {

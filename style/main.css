@@ -159,3 +159,36 @@ scale.volume-slider slider {
 .tray-item:hover {
   background: alpha(@foreground, 0.08);
 }
+
+/* ── Tooltips ────────────────────────────────────────────────────────────── */
+tooltip {
+  background-color: @surface;
+  border: 1px solid alpha(@outline, 0.5);
+  border-radius: 8px;
+  padding: 0;
+}
+
+tooltip > box {
+  padding: 5px 10px;
+}
+
+tooltip label {
+  color: @foreground;
+  font-size: 13px;
+}
+
+/* ── Clock calendar popover ──────────────────────────────────────────────── */
+.clock > button {
+  padding: 0 10px;
+}
+
+.cal-output {
+  font-family: "FiraCode Nerd Font Mono", monospace;
+  font-size: 12px;
+  color: @foreground;
+}
+
+.cal-year {
+  font-size: 9px;
+  color: alpha(@foreground, 0.75);
+}

@@ -1,23 +1,46 @@
 import { createPoll } from "ags/time"
+import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
+import layout from "../layouts"
 
-function formatDate(): string {
+function formatTime(): string {
   const now = GLib.DateTime.new_now_local()
-  const weekday = now.format("%A")!
-  const date = now.format("%b %-e")!
-  const time = now.format("%H:%M:%S")!
-  return `${weekday}, ${date} @ <b>${time}</b>`
+  const weekday = now.format("%a")!
+  const date    = now.format("%d %b")!
+  const time    = now.format("%H:%M:%S")!
+  return `${weekday} ${date}  <b>${time}</b>`
 }
 
 export default function Clock() {
-  const clock = createPoll("", 1000, formatDate)
+  // Seed with current value so label isn't empty on first frame
+  const clock    = createPoll(formatTime(), 1000, formatTime)
+  const calMonth = createPoll("", 60_000, "cal -w")
+  const calYear  = createPoll("", 3_600_000, "cal -y")
 
   return (
-    <label
-      class="clock"
-      useMarkup={true}
-      label={clock}
-      tooltipText="Click to open calendar"
-    />
+    <menubutton class="clock" tooltipText="Calendar">
+      <label useMarkup label={clock} />
+      <popover hasArrow={false} position={layout.popoverPosition}>
+        <box
+          orientation={Gtk.Orientation.VERTICAL}
+          spacing={8}
+          css="padding: 8px;"
+        >
+          <label
+            class="cal-output"
+            label={calMonth}
+            halign={Gtk.Align.START}
+            selectable
+          />
+          <Gtk.Separator />
+          <label
+            class="cal-output cal-year"
+            label={calYear}
+            halign={Gtk.Align.START}
+            selectable
+          />
+        </box>
+      </popover>
+    </menubutton>
   )
 }

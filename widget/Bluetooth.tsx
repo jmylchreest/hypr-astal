@@ -3,8 +3,8 @@ import Bluetooth from "gi://AstalBluetooth"
 import { Gtk } from "ags/gtk4"
 import layout from "../layouts"
 
-const ICON_CONNECTED = ""
-const ICON_OFF = "󰂲"
+const ICON_CONNECTED = "󰂶" // nf-md-bluetooth_connect  U+F00B6
+const ICON_OFF =       "󰂲" // nf-md-bluetooth_off       U+F00B2
 
 export default function BluetoothWidget() {
   const bt = Bluetooth.get_default()

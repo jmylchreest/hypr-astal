@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "ags run ./app.ts",
+    "dev:watch": "bun run scripts/dev-watch.ts",
     "build": "ags bundle ./app.ts ./hypr-astal",
     "typecheck": "tsc --noEmit",
     "types": "ags types -u -d ."

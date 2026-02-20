@@ -2,8 +2,14 @@ import { createBinding, createComputed } from "ags"
 import Battery from "gi://AstalBattery"
 
 const ICONS = {
-  battery:  ["", "", "", "", ""],
-  charging: "󰂄",
+  battery: [
+    "󰂎", // nf-md-battery_outline  U+F008E  0-19%
+    "󰂋", // nf-md-battery_low      U+F008B  20-39%
+    "󰂌", // nf-md-battery_medium   U+F008C  40-59%
+    "󰂍", // nf-md-battery_high     U+F008D  60-79%
+    "󰁹", // nf-md-battery          U+F0079  80-100%
+  ],
+  charging: "󰂄", // nf-md-battery_charging U+F0084
 }
 
 export default function Upower() {

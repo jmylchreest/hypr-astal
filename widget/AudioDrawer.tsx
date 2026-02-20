@@ -5,14 +5,14 @@ import IconButton from "./common/IconButton"
 import layout from "../layouts"
 
 const SPEAKER_ICONS = {
-  muted:  "",
-  low:    "",
-  medium: "",
-  high:   "",
+  muted:  "󰝟", // nf-md-volume_off        U+F075F
+  low:    "󰕿", // nf-md-volume_low        U+F057F
+  medium: "󰖀", // nf-md-volume_medium     U+F0580
+  high:   "󰕾", // nf-md-volume_high       U+F057E
 }
 
-const MIC_ICON = "󰍬"
-const MIC_MUTED_ICON = ""
+const MIC_ICON =       "󰍬" // nf-md-microphone        U+F036C
+const MIC_MUTED_ICON = "󰍭" // nf-md-microphone_off    U+F036D
 
 export default function AudioDrawer() {
   const wp = Wp.get_default()!
