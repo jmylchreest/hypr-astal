@@ -1,6 +1,7 @@
 import { createBinding } from "ags"
 import Bluetooth from "gi://AstalBluetooth"
 import { Gtk } from "ags/gtk4"
+import layout from "../layouts"
 
 const ICON_CONNECTED = ""
 const ICON_OFF = "󰂲"
@@ -53,7 +54,7 @@ export default function BluetoothWidget() {
   return (
     <menubutton tooltipText={tooltip}>
       <label label={icon} />
-      <popover hasArrow={false} position={Gtk.PositionType.BOTTOM}>
+      <popover hasArrow={false} position={layout.popoverPosition}>
         <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280} margin={8}>
           <box spacing={8} margin={4}>
             <label label="Bluetooth" hexpand halign={Gtk.Align.START} />

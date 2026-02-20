@@ -1,6 +1,7 @@
 import { createBinding } from "ags"
 import Network from "gi://AstalNetwork"
 import { Gtk } from "ags/gtk4"
+import layout from "../layouts"
 
 const WIFI_ICONS = ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"]
 const ETHERNET_ICON = "󰈀"
@@ -72,7 +73,7 @@ export default function NetworkWidget() {
       ))}
       <menubutton tooltipText={wifiTooltip}>
         <label label={wifiIcon} />
-        <popover hasArrow={false} position={Gtk.PositionType.BOTTOM}>
+        <popover hasArrow={false} position={layout.popoverPosition}>
           <box orientation={Gtk.Orientation.VERTICAL} spacing={4} widthRequest={280} margin={8}>
             <box spacing={8} margin={4}>
               <label label="Wi-Fi" hexpand halign={Gtk.Align.START} />

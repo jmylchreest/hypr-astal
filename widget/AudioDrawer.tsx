@@ -3,6 +3,7 @@ import Wireplumber from "gi://AstalWireplumber"
 import { Gtk } from "ags/gtk4"
 import Drawer from "./common/Drawer"
 import IconButton from "./common/IconButton"
+import layout from "../layouts"
 
 const SPEAKER_ICONS = {
   muted:   "",
@@ -68,6 +69,7 @@ export default function AudioDrawer() {
 
   return (
     <Drawer
+      direction={layout.drawerDirection}
       trigger={
         <IconButton
           icon={speakerIcon}

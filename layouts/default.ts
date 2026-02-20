@@ -6,6 +6,9 @@ const layout: BarLayout = {
   layer: Astal.Layer.TOP,
   exclusivity: Astal.Exclusivity.EXCLUSIVE,
   orientation: Gtk.Orientation.HORIZONTAL,
+  // Top horizontal bar: popovers open downward, drawers expand left
+  popoverPosition: Gtk.PositionType.BOTTOM,
+  drawerDirection: "left",
 }
 
 export default layout

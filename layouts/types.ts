@@ -5,4 +5,8 @@ export type BarLayout = {
   layer: Astal.Layer
   exclusivity: Astal.Exclusivity
   orientation: Gtk.Orientation
+  // Derived from anchor + orientation for widget popovers
+  popoverPosition: Gtk.PositionType
+  // Direction drawers should expand (opposite side from trigger)
+  drawerDirection: "left" | "right"
 }

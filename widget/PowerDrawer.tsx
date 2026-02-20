@@ -3,6 +3,7 @@ import PowerProfiles from "gi://AstalPowerProfiles"
 import GLib from "gi://GLib"
 import Drawer from "./common/Drawer"
 import IconButton from "./common/IconButton"
+import layout from "../layouts"
 
 const ICONS = {
   power:      "",
@@ -25,7 +26,7 @@ export default function PowerDrawer() {
 
   return (
     <Drawer
-      direction="left"
+      direction={layout.drawerDirection}
       trigger={
         <box>
           <IconButton
