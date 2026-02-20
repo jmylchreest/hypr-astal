@@ -1,0 +1,21 @@
+{
+  "name": "hypr-astal",
+  "version": "0.1.0",
+  "description": "A GTK4/libadwaita desktop bar for Hyprland built with AGS v3",
+  "type": "module",
+  "scripts": {
+    "dev": "ags run ./app.ts",
+    "build": "ags bundle ./app.ts ./hypr-astal",
+    "typecheck": "tsc --noEmit",
+    "types": "ags types -u -d ."
+  },
+  "keywords": ["ags", "astal", "gtk4", "hyprland", "wayland", "bar"],
+  "author": "John Mylchreest",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
