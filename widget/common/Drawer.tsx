@@ -41,12 +41,12 @@ export default function Drawer({
       }
       transitionDuration={transitionDuration}
       overflow={Gtk.Overflow.HIDDEN}
+      valign={Gtk.Align.CENTER}
+      vexpand={false}
       $={(self: Gtk.Revealer) => {
-        // Sync content visibility with animation completion
         const id = self.connect("notify::child-revealed", () => {
           content.visible = self.childRevealed
         })
-        // Start hidden
         content.visible = false
         onCleanup(() => self.disconnect(id))
       }}
@@ -59,6 +59,7 @@ export default function Drawer({
     <box
       class="pill-group"
       valign={Gtk.Align.CENTER}
+      vexpand={false}
       $={(self: Gtk.Box) => self.add_controller(hover)}
     >
       {direction === "left" ? [revealer, trigger] : [trigger, revealer]}

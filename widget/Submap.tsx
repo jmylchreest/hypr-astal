@@ -15,7 +15,7 @@ export default function Submap() {
     <label
       class="submap bar-icon"
       label={submap}
-      visible={submap((s) => s !== "")}
+      visible={submap.as((s) => s !== "")}
     />
   )
 }

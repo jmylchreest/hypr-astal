@@ -18,11 +18,13 @@ const ICONS = {
 
 export default function PowerDrawer() {
   const pp = PowerProfiles.get_default()
+  if (!pp) return <box />
+
   const profile = createBinding(pp, "activeProfile")
   // profiles is a static list, not a reactive property
   const profileNames = pp.get_profiles().map((p) => p.profile)
 
-  const profileIcon = profile((p) => ICONS.profiles[p as keyof typeof ICONS.profiles] ?? ICONS.profiles.balanced)
+  const profileIcon = profile.as((p) => ICONS.profiles[p as keyof typeof ICONS.profiles] ?? ICONS.profiles.balanced)
 
   return (
     <Drawer

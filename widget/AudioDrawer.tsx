@@ -1,6 +1,6 @@
 import { createBinding, createComputed, onCleanup } from "ags"
 import Wp from "gi://AstalWp"
-import { Gtk } from "ags/gtk4"
+import Astal from "gi://Astal?version=4.0"
 import Drawer from "./common/Drawer"
 import IconButton from "./common/IconButton"
 import layout from "../layouts"
@@ -16,24 +16,38 @@ const MIC_ICON =       "󰍬" // nf-md-microphone     U+F036C
 const MIC_MUTED_ICON = "󰍭" // nf-md-microphone_off U+F036D
 
 // A reactive volume slider bound directly to an endpoint.
-// The endpoint object is stable — we bind its properties directly.
+// Uses Astal.Slider (<slider> intrinsic) which wraps Gtk.Scale with
+// value/min/max/step props and an onDragged signal.
 function VolumeSlider({ endpoint }: { endpoint: Wp.Endpoint }) {
   const volume = createBinding(endpoint, "volume")
 
   return (
-    <scale
+    <slider
       class="volume-slider"
-      orientation={Gtk.Orientation.HORIZONTAL}
-      drawValue={false}
       min={0}
       max={1}
       step={0.01}
       value={volume}
-      $={(self: Gtk.Scale) => {
-        const id = self.connect("value-changed", () => {
-          endpoint.volume = self.get_value()
+      $={(self: Astal.Slider) => {
+        let settingFromBinding = false
+        const unsubVol = volume.subscribe((v) => {
+          if (!isFinite(v)) return
+          settingFromBinding = true
+          self.value = v
+          settingFromBinding = false
         })
-        onCleanup(() => self.disconnect(id))
+        const id = self.connect("notify::value", () => {
+          if (!settingFromBinding && isFinite(self.value)) {
+            endpoint.volume = self.value
+          }
+        })
+        // Seed initial value
+        const initial = volume.peek()
+        if (isFinite(initial)) self.value = initial
+        onCleanup(() => {
+          unsubVol()
+          self.disconnect(id)
+        })
       }}
     />
   )

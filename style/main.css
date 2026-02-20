@@ -4,13 +4,17 @@
  *   @accent      @accent-fg   @danger   @warning  @success
  */
 
+/* ── Global reset ────────────────────────────────────────────────────────── */
+* {
+  font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", sans-serif;
+  font-size: 14px;
+}
+
 /* ── Bar window ─────────────────────────────────────────────────────────── */
 window.Bar {
   background-color: alpha(@background, 0.92);
   color: @foreground;
-  font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", sans-serif;
-  font-size: 14px;
-  padding: 0 8px;
+  padding: 0;
 }
 
 /* Strip default GTK padding from window's child */
@@ -45,17 +49,18 @@ menubutton > button {
   min-height: 0;
 }
 
-/* ── Common icon ─────────────────────────────────────────────────────────── */
-/* .bar-icon is on the label inside the button — font-size here directly
-   controls the rendered glyph size. */
+/* ── Common icon label ───────────────────────────────────────────────────── */
+/* Applied to the <label> containing the glyph — font-size here sets glyph size */
 .bar-icon {
-  font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", monospace;
-  font-size: 16px;
+  font-family: "FiraCode Nerd Font Mono", "Symbols Nerd Font", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  min-width: 24px;
+  padding: 0 10px;
 }
 
-/* Wrapper button for icon buttons — tight, no extra space */
+/* Wrapper button for icon buttons — no extra chrome */
 .icon-btn {
-  padding: 2px 6px;
   min-width: 0;
   min-height: 0;
 }
@@ -68,8 +73,8 @@ menubutton > button {
 .workspaces button {
   color: alpha(@foreground, 0.45);
   border-radius: 6px;
-  padding: 2px 7px;
-  min-height: 24px;
+  padding: 2px 8px;
+  min-height: 28px;
   transition: all 150ms ease;
 }
 
@@ -82,10 +87,12 @@ menubutton > button {
   color: @accent;
 }
 
+/* Workspace glyphs are smaller — override .bar-icon inside workspaces */
 .workspaces label.bar-icon {
   font-size: 14px;
-  padding: 0;
+  font-weight: 400;
   min-width: 0;
+  padding: 0;
 }
 
 /* ── Submap ──────────────────────────────────────────────────────────────── */
@@ -98,11 +105,13 @@ menubutton > button {
 
 /* ── Clock ───────────────────────────────────────────────────────────────── */
 button.clock {
-  padding: 0 10px;
+  padding: 0 12px;
+  min-height: 0;
 }
 
 .clock-label {
   font-size: 14px;
+  font-weight: 400;
 }
 
 /* ── Pill groups (drawers) ───────────────────────────────────────────────── */
@@ -111,17 +120,17 @@ button.clock {
   border: 1px solid alpha(@outline, 0.35);
   border-radius: 20px;
   padding: 0 2px;
-  margin: 3px 3px;
+  margin: 3px 4px;
 }
 
 .drawer-child {
   padding: 0;
 }
 
-/* ── Sliders ─────────────────────────────────────────────────────────────── */
+/* ── Sliders — Astal.Slider extends Gtk.Scale, CSS node is "scale" ───────── */
 scale.volume-slider {
-  min-width: 80px;
-  padding: 0 6px;
+  min-width: 90px;
+  padding: 0 4px;
 }
 
 scale.volume-slider trough {
@@ -136,17 +145,18 @@ scale.volume-slider highlight {
 }
 
 scale.volume-slider slider {
-  min-width: 12px;
-  min-height: 12px;
+  min-width: 10px;
+  min-height: 10px;
   background-color: @foreground;
   border: none;
   border-radius: 50%;
   box-shadow: none;
+  margin: 0;
 }
 
 /* ── Idle inhibitor ──────────────────────────────────────────────────────── */
 label.idle-inhibitor {
-  color: alpha(@foreground, 0.4);
+  color: alpha(@foreground, 0.35);
 }
 
 label.idle-inhibitor.activated {
@@ -156,8 +166,9 @@ label.idle-inhibitor.activated {
 /* ── Privacy indicators ──────────────────────────────────────────────────── */
 .privacy-indicator {
   color: @danger;
-  font-size: 16px;
-  padding: 2px 5px;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 0 10px;
 }
 
 /* ── Tray ────────────────────────────────────────────────────────────────── */
@@ -166,7 +177,7 @@ label.idle-inhibitor.activated {
 }
 
 .tray-item {
-  padding: 2px 4px;
+  padding: 2px 5px;
   border-radius: 6px;
 }
 
@@ -187,15 +198,10 @@ tooltip > box {
 }
 
 tooltip label {
-  color: @foreground;
   font-size: 13px;
 }
 
 /* ── Clock calendar popover ──────────────────────────────────────────────── */
-.clock > button {
-  padding: 0 10px;
-}
-
 .cal-output {
   font-family: "FiraCode Nerd Font Mono", monospace;
   font-size: 12px;

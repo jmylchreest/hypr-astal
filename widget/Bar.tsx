@@ -14,7 +14,7 @@ export default function Bar(monitor = 0) {
       anchor={layout.anchor}
       exclusivity={layout.exclusivity}
       layer={layout.layer}
-      heightRequest={40}
+      heightRequest={44}
     >
       <centerbox
         orientation={layout.orientation}

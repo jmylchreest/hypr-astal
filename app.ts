@@ -11,6 +11,7 @@ import Bar from "./widget/Bar"
 app.start({
   css,
   async main() {
+    try {
     // Load user config.ts if it exists (falls back to defaults)
     await loadUserConfig()
     const config = getConfig()
@@ -63,5 +64,10 @@ app.start({
         Bar(i)
       }
     })
+    } catch (e) {
+      console.error("[bar] startup error:", e)
+      // Re-throw so the promise still rejects with a visible message
+      throw e
+    }
   },
 })
