@@ -1,3 +1,4 @@
+import { Gtk } from "ags/gtk4"
 import registry from "./registry"
 
 type SlotProps = {
@@ -5,9 +6,12 @@ type SlotProps = {
   spacing?: number
 }
 
-export default function SlotRenderer({ widgets, spacing = 2 }: SlotProps) {
+export default function SlotRenderer({ widgets, spacing = 4 }: SlotProps) {
   return (
-    <box spacing={spacing}>
+    <box
+      spacing={spacing}
+      valign={Gtk.Align.CENTER}
+    >
       {widgets.map((name) => {
         const Widget = registry[name]
         if (!Widget) {
@@ -15,7 +19,7 @@ export default function SlotRenderer({ widgets, spacing = 2 }: SlotProps) {
           return null
         }
         return (
-          <box class={`widget-${name}`}>
+          <box class={`widget-${name}`} valign={Gtk.Align.CENTER}>
             <Widget />
           </box>
         )

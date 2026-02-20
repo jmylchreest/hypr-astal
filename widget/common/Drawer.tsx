@@ -29,14 +29,20 @@ export default function Drawer({
   return (
     <box
       class="pill-group"
+      valign={Gtk.Align.CENTER}
       $={(self: Gtk.Box) => self.add_controller(hover)}
     >
       <revealer
         revealChild={revealed}
         transitionType={transitionType}
         transitionDuration={transitionDuration}
+        overflow={Gtk.Overflow.HIDDEN}
+        $={(self: Gtk.Revealer) => {
+          // Ensure the child is allocated before first reveal
+          self.overflow = Gtk.Overflow.HIDDEN
+        }}
       >
-        <box class="drawer-child">
+        <box class="drawer-child" valign={Gtk.Align.CENTER}>
           {Array.isArray(children) ? children : [children]}
         </box>
       </revealer>

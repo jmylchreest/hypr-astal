@@ -1,4 +1,5 @@
 import app from "ags/gtk4/app"
+import { createRoot } from "ags"
 import Adw from "gi://Adw"
 import Gio from "gi://Gio"
 import GLib from "gi://GLib"
@@ -14,7 +15,7 @@ app.start({
     await loadUserConfig()
     const config = getConfig()
 
-    // Colour scheme via libadwaita
+    // Colour scheme via libadwaita (must use AdwStyleManager, not GtkSettings)
     const styleManager = Adw.StyleManager.get_default()
     styleManager.colorScheme = {
       dark:  Adw.ColorScheme.PREFER_DARK,
@@ -28,18 +29,18 @@ app.start({
       return `${themesDir}/${config.colours}.css`
     }
 
-    // Apply styles
+    // Apply structural CSS then theme colours on top
     function applyTheme() {
       app.reset_css()
       app.apply_css(css)
-      try {
+      if (GLib.file_test(themePath(), GLib.FileTest.EXISTS)) {
         app.apply_css(themePath())
-      } catch {
+      } else {
         console.warn(`[bar] theme not found: ${themePath()}`)
       }
     }
 
-    // Hot-reload watcher
+    // Hot-reload watcher for theme file
     function watchTheme() {
       const file = Gio.File.new_for_path(themePath())
       const monitor = file.monitor_file(Gio.FileMonitorFlags.NONE, null)
@@ -53,9 +54,14 @@ app.start({
     applyTheme()
     const _monitor = watchTheme()
 
+    // Bar creation uses reactive primitives (For, createBinding, etc.)
+    // which require a scope. After `await`, the original createRoot scope is
+    // gone, so we must establish a new one explicitly.
     const monitors = app.get_monitors()
-    for (let i = 0; i < monitors.length; i++) {
-      Bar(i)
-    }
+    createRoot(() => {
+      for (let i = 0; i < monitors.length; i++) {
+        Bar(i)
+      }
+    })
   },
 })
