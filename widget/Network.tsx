@@ -12,7 +12,7 @@ export default function NetworkWidget() {
   const wifi = net.wifi
   const wired = net.wired
 
-  const wifiIcon = createBinding(wifi, "strength").((s) => {
+  const wifiIcon = createBinding(wifi, "strength")((s) => {
     if (!wifi.enabled) return DISCONNECTED_ICON
     if (s >= 80) return WIFI_ICONS[4]
     if (s >= 60) return WIFI_ICONS[3]
@@ -21,15 +21,15 @@ export default function NetworkWidget() {
     return WIFI_ICONS[0]
   })
 
-  const wifiTooltip = createBinding(wifi, "ssid").((ssid) =>
+  const wifiTooltip = createBinding(wifi, "ssid")((ssid) =>
     ssid ? `${ssid} (${wifi.strength}%)` : "WiFi disconnected"
   )
 
-  const wiredIcon = createBinding(wired, "addresses").((addrs) =>
+  const wiredIcon = createBinding(wired, "addresses")((addrs) =>
     addrs.length > 0 ? ETHERNET_ICON : ""
   )
 
-  const wiredTooltip = createBinding(wired, "addresses").((addrs) =>
+  const wiredTooltip = createBinding(wired, "addresses")((addrs) =>
     addrs.length > 0 ? "Ethernet connected" : "Ethernet disconnected"
   )
 
@@ -39,7 +39,7 @@ export default function NetworkWidget() {
     const ssid = createBinding(ap, "ssid")
     const strength = createBinding(ap, "strength")
     const flags = createBinding(ap, "flags")
-    const active = createBinding(wifi, "ssid").((s) => s === ap.ssid)
+    const active = createBinding(wifi, "ssid")((s) => s === ap.ssid)
 
     const icon = strength((s) => {
       if (s >= 80) return "network-wireless-signal-excellent-symbolic"
