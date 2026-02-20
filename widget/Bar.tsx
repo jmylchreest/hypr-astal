@@ -1,6 +1,8 @@
 import layout from "../layouts"
-import config from "../config"
+import { getConfig } from "../config.loader"
 import SlotRenderer from "./SlotRenderer"
+
+const config = getConfig()
 
 export default function Bar(monitor = 0) {
   return (

@@ -1,6 +1,8 @@
-import config from "../config"
+import { getConfig } from "../config.loader"
 import defaultLayout from "./default"
 import type { BarLayout } from "./types"
+
+const config = getConfig()
 
 const layouts: Record<string, BarLayout> = {
   default: defaultLayout,
