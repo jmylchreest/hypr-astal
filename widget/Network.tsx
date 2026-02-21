@@ -15,12 +15,13 @@ export default function NetworkWidget() {
     return <box />
   }
 
+  const enabled = createBinding(wifi, "enabled")
   const strength = createBinding(wifi, "strength")
   const ssid = createBinding(wifi, "ssid")
   const accessPoints = createBinding(wifi, "accessPoints")
 
   const wifiIcon = createComputed(() => {
-    if (!wifi.enabled) return DISCONNECTED_ICON
+    if (!enabled()) return DISCONNECTED_ICON
     const s = strength()
     if (s >= 80) return WIFI_ICONS[4]
     if (s >= 60) return WIFI_ICONS[3]

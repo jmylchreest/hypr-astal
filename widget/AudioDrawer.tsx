@@ -1,4 +1,4 @@
-import { createBinding, createComputed, onCleanup } from "ags"
+import { createBinding, createComputed, onCleanup, With } from "ags"
 import Wp from "gi://AstalWp"
 import Astal from "gi://Astal?version=4.0"
 import Drawer from "./common/Drawer"
@@ -105,22 +105,32 @@ export default function AudioDrawer() {
   const audio = wp.audio
   if (!audio) return <box />
 
-  // These endpoint objects are stable references — safe to use directly.
-  // If defaults change (e.g. user switches output device), we'd need
-  // a more complex approach, but this covers the common case.
-  const speaker = audio.defaultSpeaker
-  const mic     = audio.defaultMicrophone
-
-  if (!speaker) return <box />
+  // Bind to the default endpoint properties so we re-render when the user
+  // switches audio devices (e.g. plugging in headphones).
+  const speakerBinding = createBinding(audio, "defaultSpeaker")
+  const micBinding     = createBinding(audio, "defaultMicrophone")
 
   return (
-    <Drawer
-      direction={layout.drawerDirection}
-      trigger={<SpeakerIcon endpoint={speaker} />}
-    >
-      {mic ? <VolumeSlider endpoint={mic} /> : null}
-      {mic ? <MicIcon endpoint={mic} /> : null}
-      <VolumeSlider endpoint={speaker} />
-    </Drawer>
+    <With value={speakerBinding}>
+      {(speaker) => {
+        if (!speaker) return <box />
+        return (
+          <Drawer
+            direction={layout.drawerDirection}
+            trigger={<SpeakerIcon endpoint={speaker} />}
+          >
+            <With value={micBinding}>
+              {(mic) => mic ? (
+                <box>
+                  <VolumeSlider endpoint={mic} />
+                  <MicIcon endpoint={mic} />
+                </box>
+              ) : <box />}
+            </With>
+            <VolumeSlider endpoint={speaker} />
+          </Drawer>
+        )
+      }}
+    </With>
   )
 }

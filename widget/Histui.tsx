@@ -1,4 +1,5 @@
 import { createPoll } from "ags/time"
+import { execAsync } from "ags/process"
 import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
 
@@ -36,7 +37,7 @@ function parseStatus(raw: string): HistuiStatus {
 }
 
 export default function Histui() {
-  const raw = createPoll("", 5000, "histui status --detailed")
+  const raw = createPoll("", 5000, (prev) => execAsync("histui status --detailed").catch(() => prev))
   const status = raw.as(parseStatus)
 
   function setupGesture(self: Gtk.Button) {

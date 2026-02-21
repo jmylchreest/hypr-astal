@@ -123,8 +123,18 @@ button.clock {
   margin: 3px 4px;
 }
 
+/* Drawer content fades in/out on hover. GTK4 CSS animates opacity natively. */
 .drawer-child {
   padding: 0;
+  opacity: 1;
+  transition: opacity 120ms ease;
+}
+
+/* Hidden state — set via widget visible=false after transition,
+ * but we also set opacity 0 while shown so the fade is visible
+ * in the brief moment before GTK hides the widget. */
+.drawer-child.hidden {
+  opacity: 0;
 }
 
 /* ── Sliders — Astal.Slider extends Gtk.Scale, CSS node is "scale" ───────── */

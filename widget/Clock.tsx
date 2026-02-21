@@ -1,5 +1,6 @@
 import { createPoll } from "ags/time"
 import { onCleanup } from "ags"
+import { execAsync } from "ags/process"
 import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
 import layout from "../layouts"
@@ -15,8 +16,10 @@ function formatTime(): string {
 export default function Clock() {
   // Seed with current value so label isn't empty on first frame
   const clock    = createPoll(formatTime(), 1000, formatTime)
-  const calMonth = createPoll("", 60_000, "cal -w")
-  const calYear  = createPoll("", 3_600_000, "cal -y")
+  // Use function-based createPoll so we can catch errors — string-based polls
+  // leave rejected Promises unhandled, causing Gjs-CRITICAL noise.
+  const calMonth = createPoll("", 60_000,      (prev) => execAsync("cal -w").catch(() => prev))
+  const calYear  = createPoll("", 3_600_000,   (prev) => execAsync("cal -y").catch(() => prev))
 
   return (
     <button
